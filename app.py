@@ -70,12 +70,18 @@ except Exception as e:
     away_team_encoder = None
     models_loaded = False
 
-# Import the RapidAPI client
+# Import the RapidAPI client dynamically to avoid static import resolution errors
 try:
-    from rapidapi_client import get_news as get_rapidapi_news, get_standings as get_rapidapi_standings
-    RAPIDAPI_AVAILABLE = True
-    print("RapidAPI client loaded successfully!")
-except ImportError as e:
+    import importlib
+    rapidapi_module = importlib.import_module('rapidapi_client')
+    get_rapidapi_news = getattr(rapidapi_module, 'get_news', None)
+    get_rapidapi_standings = getattr(rapidapi_module, 'get_standings', None)
+    RAPIDAPI_AVAILABLE = bool(get_rapidapi_news or get_rapidapi_standings)
+    if RAPIDAPI_AVAILABLE:
+        print("RapidAPI client loaded successfully!")
+    else:
+        print("RapidAPI client loaded but required functions are missing.")
+except Exception as e:
     print(f"RapidAPI client not available: {e}")
     get_rapidapi_news = None
     get_rapidapi_standings = None
